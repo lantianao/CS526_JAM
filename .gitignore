@@ -1,0 +1,61 @@
+# ---------------------------------------------------------------------------
+# Unity generated folders. Library/ alone is ~5 GB of pure cache on this
+# project and Unity rebuilds all of it from Assets/ + ProjectSettings/.
+# ---------------------------------------------------------------------------
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Mm]emoryCaptures/
+[Rr]ecordings/
+
+# Per-user editor layout and preferences. Committing these makes every
+# teammate's window arrangement fight with everyone else's.
+[Uu]ser[Ss]ettings/
+
+# Never ignore .meta files inside Assets: Unity stores every asset's GUID in
+# them, and a missing .meta means broken references for whoever clones next.
+!/[Aa]ssets/**/*.meta
+
+# ---------------------------------------------------------------------------
+# IDE / solution files. Unity regenerates these on every compile and they
+# contain absolute paths from whoever generated them.
+# ---------------------------------------------------------------------------
+.vs/
+.vscode/
+.idea/
+*.csproj
+*.unityproj
+*.sln
+*.slnx
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# ---------------------------------------------------------------------------
+# Build output and misc
+# ---------------------------------------------------------------------------
+sysinfo.txt
+*.apk
+*.aab
+*.unitypackage
+*.app
+crashlytics-build.properties
+/[Aa]ssets/[Ss]treamingAssets/aa.meta
+/[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# Leftover backup written by the Package Manager
+Packages/manifest.json.bak
+
+# OS cruft
+.DS_Store
+Thumbs.db

@@ -1,0 +1,47 @@
+# Normalise line endings so a Windows and a macOS clone do not show every file
+# as modified. Unity itself writes LF, so LF is what we store and check out.
+* text=auto eol=lf
+
+# Unity serialises these as YAML text. Keeping them as text is what makes a diff
+# readable at all -- but note that git cannot meaningfully auto-merge them, so
+# coordinate before two people edit the same scene or prefab.
+*.unity       text eol=lf
+*.prefab      text eol=lf
+*.asset       text eol=lf
+*.mat         text eol=lf
+*.anim        text eol=lf
+*.controller  text eol=lf
+*.physicMaterial text eol=lf
+*.meta        text eol=lf
+*.json        text eol=lf
+
+*.cs          text eol=lf diff=csharp
+*.shader      text eol=lf
+*.md          text eol=lf
+
+# Binary assets: never touch, never try to diff.
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.tif    binary
+*.tiff   binary
+*.psd    binary
+*.tga    binary
+*.gif    binary
+*.ico    binary
+*.exr    binary
+*.hdr    binary
+*.fbx    binary
+*.FBX    binary
+*.obj    binary
+*.blend  binary
+*.ogg    binary
+*.wav    binary
+*.mp3    binary
+*.aif    binary
+*.ttf    binary
+*.otf    binary
+*.docx   binary
+*.pdf    binary
+*.unitypackage binary
+*.dll    binary
