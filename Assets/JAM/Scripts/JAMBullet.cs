@@ -25,7 +25,10 @@ public class JAMBullet : MonoBehaviour
     [Tooltip("Layers the bullet reacts to. Everything else is passed straight through.")]
     public LayerMask hitMask = ~0;
 
-    [Tooltip("Despawn on hitting something with no JAMHealth (a wall). Turn off for a piercing shot.")]
+    [Tooltip("Fly through trigger colliders that have no JAMHealth. Triggers are volumes, not walls -- collectibles, detection zones, doorways. Turn off to make the bullet react to them.")]
+    public bool passThroughTriggers = true;
+
+    [Tooltip("Despawn on hitting solid geometry with no JAMHealth (a wall). Turn off for a piercing shot.")]
     public bool destroyOnEnvironment = true;
 
     [Tooltip("Optional VFX spawned at the impact point.")]
@@ -102,6 +105,13 @@ public class JAMBullet : MonoBehaviour
         if (target != null)
         {
             target.TakeDamage(damage);
+        }
+        else if (passThroughTriggers && other.isTrigger)
+        {
+            // Nothing here to damage, and a trigger is a volume rather than a wall:
+            // pickups, detection zones and doorways are all triggers. The shot flies
+            // on through. Solid geometry uses a non-trigger collider and still stops it.
+            return;
         }
         else if (!destroyOnEnvironment)
         {
