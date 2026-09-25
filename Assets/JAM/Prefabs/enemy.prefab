@@ -228,10 +228,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c2e3bc489ee715d419d5b438c751d997, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JAMEnemy
-  moveSpeed: 3
+  moveSpeed: 2
   possessedMoveSpeed: 5
   faceAim: 1
-  detectionRange: 7
+  detectionRange: 8
   preferredRange: 4
   fireRange: 5.5
   sightBlockMask:
