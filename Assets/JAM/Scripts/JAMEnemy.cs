@@ -8,16 +8,22 @@ public class JAMEnemy : MonoBehaviour
     public Transform player;
     public float patrolSpeed;
     public float chaseSpeed;
-    public Transform patrolA;
-    public Transform patrolB;
+
     public float detectRange;
     public float attackRange;
+    public float chaseRange;
+    public Vector2 homePosition;
+    private bool returning = false;
+
+    public Transform patrolA;
+    public Transform patrolB;
+
     private Transform curTarget;
-    private bool isPossessed;
     private JAMHealth health;
     private JAMWeapon weapon;
     private Mode currentMode = Mode.AI;
     private float stunEndTime;
+
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -28,6 +34,8 @@ public class JAMEnemy : MonoBehaviour
         // set health 
         health = GetComponent<JAMHealth>();
         weapon = GetComponent<JAMWeapon>();
+        // set home position
+        homePosition = transform.position;
     }
 
     private void faceToward(Vector2 dir)
@@ -114,6 +122,28 @@ public class JAMEnemy : MonoBehaviour
             return;
         }
 
+        float distanceToHome = Vector2.Distance(transform.position, homePosition);
+        // if still returning to home
+        if (returning)
+        {
+            Patrol();
+            if (distanceToHome < 0.3f)
+            {
+                returning = false;
+            }
+            return;
+        }
+
+        // if too far from home position, stop chasing and back to patrol
+        
+        if (distanceToHome > chaseRange)
+        {
+            Patrol();
+            returning = true;
+            return;
+        }
+
+        // if player in range of detection, start chasing and attack
         float distanceToPlayer = Vector2.Distance(transform.position, player.position);
         if (distanceToPlayer <= attackRange)
         {

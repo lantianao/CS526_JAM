@@ -31,8 +31,13 @@ public class HealthBar : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        transform.rotation = cam.transform.rotation;
+        // only follow if a target is given(for the enemy but not for the player)
+        if (cam != null && target != null)
+        {
+            transform.rotation = cam.transform.rotation;
         transform.position = target.position + offset;
+        }
+        
     }
 
 }

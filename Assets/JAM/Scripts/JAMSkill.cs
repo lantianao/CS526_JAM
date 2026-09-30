@@ -350,4 +350,15 @@ public class JAMSkill : MonoBehaviour
         Gizmos.color = new Color(1f, 0.6f, 0.2f, 0.7f);
         Gizmos.DrawWireSphere(transform.position, possessRange);
     }
+
+    public float GetCooldownRemaining(JAMAbility ability)
+{
+    switch (ability)
+    {
+        case JAMAbility.Teleport:   return Mathf.Max(0f, nextTeleportTime - Time.time);
+        case JAMAbility.TimeFreeze: return Mathf.Max(0f, nextFreezeTime - Time.time);
+        case JAMAbility.Possession: return Mathf.Max(0f, nextPossessTime - Time.time);
+        default: return 0f;
+    }
+}
 }
