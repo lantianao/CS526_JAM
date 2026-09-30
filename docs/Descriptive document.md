@@ -7,7 +7,7 @@
 
 ## 1. Logline
 
-A 2D top-down shooter that allows for the free selection of abilities and approaches to completing levels, similar to the *IS* games.
+A 2D top-down shooter where immersive-sim powers reward committing to a fight instead of slipping past it (Top-Down Shooter + Combat-Forward Immersive Sim Powers).
 
 ---
 
@@ -28,7 +28,7 @@ Our twist keeps the immersive sim's systemic, self-authored power set but invert
 
 ## 3. Short Prototype Description
 
-The player is a shooter who has multiple special abilities and he needs to use all the abilities and guns to kill all enemies or reach the goal.  During the process, you can choose to rush to the destiny or explore other rooms for items that can unlock new skills.
+The player is a shooter with multiple special abilities, and must use those abilities together with their gun to kill every enemy or reach the goal. Along the way the player can either rush straight for the destination or detour through other rooms for the items that unlock new skills.
 
 ---
 
