@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class JAMKillCounter : MonoBehaviour
+public class KillCount : MonoBehaviour
 {
     public TextMeshProUGUI killText; // drag a UI Text object here
     private int kills = 0;
@@ -48,7 +48,7 @@ public class JAMKillCounter : MonoBehaviour
         // that Destroy() call too, leaving the enemy stuck alive. Guard against it.
         if (killText == null)
         {
-            Debug.LogWarning("JAMKillCounter: Kill Text isn't assigned in the Inspector.");
+            Debug.LogWarning("KillCount: Kill Text isn't assigned in the Inspector.");
             return;
         }
 

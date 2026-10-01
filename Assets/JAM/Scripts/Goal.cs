@@ -18,8 +18,13 @@ public class Goal : MonoBehaviour
             return;
         }
 
-        // check if is the player who entered
-        if (other.GetComponent<JAMPlayerController>() == null) 
+        // Check if is the player who entered. Two ways to qualify, because during a
+        // possession the player's own body is hidden with its collider disabled and
+        // the thing walking around is an enemy carrying no JAMPlayerController.
+        Transform controlled = JAMPlayerController.ControlledTransform;
+        bool isPlayer = other.GetComponentInParent<JAMPlayerController>() != null
+                     || (controlled != null && other.transform.IsChildOf(controlled));
+        if (!isPlayer)
         {
             return;
         }

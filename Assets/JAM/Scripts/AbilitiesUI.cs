@@ -1,7 +1,7 @@
 using UnityEngine;
 using TMPro;
 
-public class JAMAbilityIcon : MonoBehaviour
+public class AbilitiesUI : MonoBehaviour
 {
     public JAMAbility ability; // pick which ability this text represents, in the Inspector
 
@@ -14,7 +14,7 @@ public class JAMAbilityIcon : MonoBehaviour
         statusText = GetComponent<TextMeshProUGUI>();
         if (statusText == null)
         {
-            Debug.LogError("JAMAbilityIcon script requires a TextMeshProUGUI component on the same GameObject.");
+            Debug.LogError("AbilitiesUI script requires a TextMeshProUGUI component on the same GameObject.");
             return;
         }
 
@@ -23,7 +23,7 @@ public class JAMAbilityIcon : MonoBehaviour
 
         if (skills == null || skill == null)
         {
-            Debug.LogError("JAMAbilityIcon couldn't find JAMSkillProgression or JAMSkill in the scene.");
+            Debug.LogError("AbilitiesUI couldn't find JAMSkillProgression or JAMSkill in the scene.");
         }
     }
 

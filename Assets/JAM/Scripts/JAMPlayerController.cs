@@ -25,6 +25,12 @@ public class JAMPlayerController : MonoBehaviour
     /// </summary>
     public static Transform ControlledTransform { get; private set; }
 
+    /// <summary>
+    /// True while the player is wearing an enemy. Enemy AI treats a possession as a
+    /// disguise: it loses track of the player entirely until something shoots it.
+    /// </summary>
+    public static bool PossessionActive { get; private set; }
+
     [Header("Movement")]
     [Tooltip("Units per second.")]
     public float moveSpeed = 6f;
@@ -66,6 +72,7 @@ public class JAMPlayerController : MonoBehaviour
     private void OnEnable()
     {
         ControlledTransform = transform;
+        PossessionActive = false;
     }
 
     private void Update()
@@ -139,10 +146,12 @@ public class JAMPlayerController : MonoBehaviour
     public void SetControlledTransform(Transform driven)
     {
         ControlledTransform = driven != null ? driven : transform;
+        PossessionActive = driven != null;
     }
 
     private void OnDisable()
     {
         if (ControlledTransform == transform) ControlledTransform = null;
+        PossessionActive = false;
     }
 }

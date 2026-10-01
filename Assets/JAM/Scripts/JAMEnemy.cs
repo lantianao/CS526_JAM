@@ -1,10 +1,12 @@
 using UnityEngine;
 using UnityEngine.UI;
+[RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(JAMHealth))]
 [RequireComponent(typeof(JAMWeapon))]
 
 public class JAMEnemy : MonoBehaviour
 {
+    [Tooltip("Leave empty to follow whatever the player is driving, which also makes other enemies chase a possessed host instead of the hidden player body.")]
     public Transform player;
     public float patrolSpeed;
     public float chaseSpeed;
@@ -18,11 +20,20 @@ public class JAMEnemy : MonoBehaviour
     public Transform patrolA;
     public Transform patrolB;
 
+    [Tooltip("How close counts as having reached a patrol point. Velocity-driven movement overshoots, so this cannot be near-zero.")]
+    public float patrolArriveDistance = 0.2f;
+
     private Transform curTarget;
+    private Rigidbody2D body;
     private JAMHealth health;
     private JAMWeapon weapon;
     private Mode currentMode = Mode.AI;
     private float stunEndTime;
+
+    // Set by the Update logic, applied in FixedUpdate. Writing transform.position
+    // directly would bypass the physics engine entirely and let enemies -- and a
+    // possessed player -- walk straight through walls.
+    private Vector2 desiredVelocity;
 
     public Color possessedTint = new Color(0.6f, 0.85f, 1f);
     public Color stunnedTint = new Color(0.6f, 0.6f, 0.6f);
@@ -31,15 +42,31 @@ public class JAMEnemy : MonoBehaviour
     private Color baseColor;
     private bool wasFrozen = false;
 
+    // Set when this enemy takes a hit: it has worked out that the newcomer is the
+    // player. Cleared at the start of each possession so every disguise is a fresh
+    // one -- otherwise an enemy shot in round one would see through every later
+    // possession immediately.
+    private bool alerted = false;
+    private bool wasPossessionActive = false;
+
+
+    // Cached in Awake, not Start: JAMSkill reads Health the moment a possession
+    // begins, and Start() ordering between components is not guaranteed.
+    void Awake()
+    {
+        body = GetComponent<Rigidbody2D>();
+        body.gravityScale = 0f;
+        body.constraints = RigidbodyConstraints2D.FreezeRotation;
+
+        health = GetComponent<JAMHealth>();
+        weapon = GetComponent<JAMWeapon>();
+    }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
        // move to patrol point A first
-        curTarget = patrolA;
-        // set health 
-        health = GetComponent<JAMHealth>();
-        weapon = GetComponent<JAMWeapon>();
+        curTarget = patrolA != null ? patrolA : patrolB;
         // set home position
         homePosition = transform.position;
 
@@ -57,42 +84,106 @@ public class JAMEnemy : MonoBehaviour
         transform.rotation = Quaternion.Euler(0f, 0f, angle);
     }
 
+    /// <summary>
+    /// What this enemy is hunting, or null when it has nothing to hunt.
+    ///
+    /// A possession reads as a disguise: while the player is wearing someone else,
+    /// this enemy has no idea where they went and returns to patrolling. Taking a
+    /// hit blows the cover, and from then on it chases whatever the player is
+    /// actually driving rather than the empty body left behind.
+    /// </summary>
+    private Transform Target
+    {
+        get
+        {
+            if (JAMPlayerController.PossessionActive)
+            {
+                return alerted ? JAMPlayerController.ControlledTransform : null;
+            }
+            return player != null ? player : JAMPlayerController.ControlledTransform;
+        }
+    }
+
+    private void OnEnable()
+    {
+        if (health != null) health.Damaged += OnDamaged;
+    }
+
+    private void OnDisable()
+    {
+        if (health != null) health.Damaged -= OnDamaged;
+    }
+
+    /// <summary>Any hit blows a possession's cover for this enemy.</summary>
+    private void OnDamaged(JAMHealth damagedHealth, int amount)
+    {
+        alerted = true;
+    }
+
     private void Patrol()
     {
-        // turn towards target
-        Vector2 aimDir = (curTarget.position - transform.position).normalized;
-        faceToward(aimDir);
-
-        transform.position = Vector2.MoveTowards(transform.position, curTarget.position, patrolSpeed * Time.deltaTime);
-        
-        // switch to other target when reach cur target
-        if (Vector2.Distance(transform.position, curTarget.position) < 0.01f)
+        // No route assigned: hold position rather than dereferencing a null point.
+        if (curTarget == null) curTarget = patrolA != null ? patrolA : patrolB;
+        if (curTarget == null)
         {
-            curTarget = (curTarget == patrolA) ? patrolB : patrolA;
+            desiredVelocity = Vector2.zero;
+            return;
         }
+
+        Vector2 toTarget = (Vector2)curTarget.position - (Vector2)transform.position;
+
+        // switch to other target when reach cur target
+        if (toTarget.magnitude <= patrolArriveDistance)
+        {
+            Transform other = (curTarget == patrolA) ? patrolB : patrolA;
+            if (other != null) curTarget = other;
+            desiredVelocity = Vector2.zero;
+            return;
+        }
+
+        Vector2 aimDir = toTarget.normalized;
+        faceToward(aimDir);
+        desiredVelocity = aimDir * patrolSpeed;
+    }
+
+    /// <summary>Walks back to the spawn point recorded in Start. Used after a chase
+    /// is called off, and it is the whole idle behaviour of an enemy with no patrol
+    /// points -- such an enemy simply guards the spot it was placed on.</summary>
+    private void ReturnHome()
+    {
+        Vector2 toHome = homePosition - (Vector2)transform.position;
+        if (toHome.magnitude <= patrolArriveDistance)
+        {
+            desiredVelocity = Vector2.zero;
+            return;
+        }
+
+        Vector2 aimDir = toHome.normalized;
+        faceToward(aimDir);
+        desiredVelocity = aimDir * patrolSpeed;
     }
 
     private void ChasePlayer()
     {
         // move towards player
-        Vector2 aimDir = (player.position - transform.position).normalized;
+        Vector2 aimDir = ((Vector2)Target.position - (Vector2)transform.position).normalized;
         faceToward(aimDir);
-        transform.position = Vector2.MoveTowards(transform.position, player.position, chaseSpeed * Time.deltaTime);
+        desiredVelocity = aimDir * chaseSpeed;
     }
 
     private void AttackPlayer()
     {
         // aim at player's current position
-        Vector2 aimDir = (player.position - transform.position).normalized;
+        Vector2 aimDir = ((Vector2)Target.position - (Vector2)transform.position).normalized;
         faceToward(aimDir);
+        desiredVelocity = Vector2.zero;
         weapon.TryFire(aimDir, currentMode == Mode.Possessed);
     }
 
     private void Possessed()
     {
         // move as player input
-        Vector2 moveInput = JAMInput.MoveAxis();
-        transform.position += (Vector3)(moveInput * chaseSpeed * Time.deltaTime);
+        desiredVelocity = JAMInput.MoveAxis() * chaseSpeed;
 
         // face cursor direction
         Vector2 aimDir = JAMInput.AimDirection(Camera.main, transform.position, Vector2.right);
@@ -100,9 +191,15 @@ public class JAMEnemy : MonoBehaviour
 
         if (JAMInput.FireHeld())
         {
-            
+
             weapon.TryFire(aimDir, true);
         }
+    }
+
+    private void FixedUpdate()
+    {
+        if (!body.simulated) return;
+        body.linearVelocity = desiredVelocity;
     }
     
     // Update is called once per frame
@@ -111,7 +208,13 @@ public class JAMEnemy : MonoBehaviour
         // detect player, attack and chase
         // patrol
         // possessed
-        
+
+        // Each new possession starts as an intact disguise, so suspicion earned
+        // during an earlier one does not carry over.
+        bool possessionActive = JAMPlayerController.PossessionActive;
+        if (possessionActive && !wasPossessionActive) alerted = false;
+        wasPossessionActive = possessionActive;
+
         switch (currentMode)
         {
             case Mode.Possessed:
@@ -129,6 +232,7 @@ public class JAMEnemy : MonoBehaviour
                 }
                 else
                 {
+                    desiredVelocity = Vector2.zero;
                     return;
                 }
                 break;
@@ -141,6 +245,7 @@ public class JAMEnemy : MonoBehaviour
                 spriteRenderer.color = frozenTint;
             }
             wasFrozen = true;
+            desiredVelocity = Vector2.zero;
             return;
         }
         else if (wasFrozen)
@@ -156,8 +261,11 @@ public class JAMEnemy : MonoBehaviour
         // if still returning to home
         if (returning)
         {
-            Patrol();
-            if (distanceToHome < 0.3f)
+            // Walk back to the post, not to a patrol point: a guard with no patrol
+            // route would otherwise stand still here and never clear `returning`,
+            // stranding it wherever it gave up the chase.
+            ReturnHome();
+            if (distanceToHome < patrolArriveDistance)
             {
                 returning = false;
             }
@@ -165,16 +273,24 @@ public class JAMEnemy : MonoBehaviour
         }
 
         // if too far from home position, stop chasing and back to patrol
-        
+
         if (distanceToHome > chaseRange)
         {
-            Patrol();
+            ReturnHome();
             returning = true;
             return;
         }
 
+        // Nothing to hunt (no reference dragged in and no live player): just patrol.
+        Transform target = Target;
+        if (target == null)
+        {
+            Patrol();
+            return;
+        }
+
         // if player in range of detection, start chasing and attack
-        float distanceToPlayer = Vector2.Distance(transform.position, player.position);
+        float distanceToPlayer = Vector2.Distance(transform.position, target.position);
         if (distanceToPlayer <= attackRange)
         {
             AttackPlayer();
