@@ -24,6 +24,12 @@ public class JAMEnemy : MonoBehaviour
     private Mode currentMode = Mode.AI;
     private float stunEndTime;
 
+    public Color possessedTint = new Color(0.6f, 0.85f, 1f);
+    public Color stunnedTint = new Color(0.6f, 0.6f, 0.6f);
+    public Color frozenTint = new Color(0.6f, 0.85f, 1f);
+    private SpriteRenderer spriteRenderer;
+    private Color baseColor;
+    private bool wasFrozen = false;
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -36,6 +42,13 @@ public class JAMEnemy : MonoBehaviour
         weapon = GetComponent<JAMWeapon>();
         // set home position
         homePosition = transform.position;
+
+        // remember enemy's original color
+        spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        if (spriteRenderer != null)
+        {
+            baseColor = spriteRenderer.color;
+        }
     }
 
     private void faceToward(Vector2 dir)
@@ -109,6 +122,10 @@ public class JAMEnemy : MonoBehaviour
                 if (Time.time >= stunEndTime)
                 {
                     currentMode = Mode.AI;
+                    if (spriteRenderer != null)
+                    {
+                        spriteRenderer.color = baseColor;
+                    }
                 }
                 else
                 {
@@ -119,7 +136,20 @@ public class JAMEnemy : MonoBehaviour
 
         if (JAMTimeFreeze.IsFrozen)
         {
+            if (!wasFrozen && spriteRenderer != null)
+            {
+                spriteRenderer.color = frozenTint;
+            }
+            wasFrozen = true;
             return;
+        }
+        else if (wasFrozen)
+        {
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.color = baseColor;
+            }
+            wasFrozen = false;
         }
 
         float distanceToHome = Vector2.Distance(transform.position, homePosition);
@@ -166,6 +196,12 @@ public class JAMEnemy : MonoBehaviour
     public void BeginPossession()
     {
         currentMode = Mode.Possessed;
+
+        // change color
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = possessedTint;
+        }
     }
  
     public void EndPossession(float stunDuration)
@@ -173,5 +209,11 @@ public class JAMEnemy : MonoBehaviour
         // stun the possessed enemy
         stunEndTime = Time.time + stunDuration;
         currentMode = Mode.Stunned;
+
+        // change back to original color
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = stunnedTint;
+        }
     }
 }

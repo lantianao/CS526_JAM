@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 160922676654641940}
   - component: {fileID: 7033875248144312268}
   - component: {fileID: 4024887353479735013}
-  - component: {fileID: 3371803536441453793}
+  - component: {fileID: 1558526957960223525}
   m_Layer: 0
   m_Name: enemy
   m_TagString: Untagged
@@ -216,7 +216,7 @@ MonoBehaviour:
   fireRate: 3
   bulletSpeed: 8
   damage: 1
---- !u!114 &3371803536441453793
+--- !u!114 &1558526957960223525
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -225,20 +225,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 123160616127816638}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c2e3bc489ee715d419d5b438c751d997, type: 3}
+  m_Script: {fileID: 11500000, guid: 5d2c163eb20e943288ed134873c1ba7a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JAMEnemy
-  moveSpeed: 2
-  possessedMoveSpeed: 5
-  faceAim: 1
-  detectionRange: 8
-  preferredRange: 4
-  fireRange: 5.5
-  sightBlockMask:
-    serializedVersion: 2
-    m_Bits: 0
-  patrolPoints: []
-  patrolArriveDistance: 0.3
-  patrolWaitTime: 0.6
-  possessedTint: {r: 0.6, g: 0.85, b: 1, a: 1}
-  stunnedTint: {r: 0.6, g: 0.6, b: 0.6, a: 1}
+  player: {fileID: 0}
+  patrolSpeed: 3
+  chaseSpeed: 4
+  detectRange: 7
+  attackRange: 4
+  chaseRange: 9
+  homePosition: {x: 0, y: 0}
+  patrolA: {fileID: 0}
+  patrolB: {fileID: 0}
