@@ -31,6 +31,9 @@ public class JAMSkill : MonoBehaviour
     [Tooltip("Clearance needed at the destination. Roughly the player's collider radius.")]
     public float teleportClearRadius = 0.85f;
 
+    [Tooltip("Sweep the path and stop at the first solid collider, so the jump cannot pass through a wall and land outside the level. Turn off for a phase-through blink.")]
+    public bool stopAtWalls = true;
+
     [Tooltip("Optional marker spawned at the destination during the wind-up, so the jump is telegraphed.")]
     public GameObject teleportMarkerPrefab;
 
@@ -67,6 +70,9 @@ public class JAMSkill : MonoBehaviour
     private JAMPlayerController player;
     private Rigidbody2D body;
     private Camera mainCamera;
+
+    // Reused by the teleport sweep so a jump allocates nothing.
+    private readonly RaycastHit2D[] teleportHits = new RaycastHit2D[16];
 
     private float nextTeleportTime;
     private float nextFreezeTime;
@@ -128,8 +134,8 @@ public class JAMSkill : MonoBehaviour
 
         // The destination is locked in on the key press rather than after the
         // wind-up, so the marker the player sees is the spot they actually land on.
-        Vector2 destination = ResolveTeleportDestination(
-            JAMInput.CursorWorldPosition(mainCamera, transform.position));
+        Vector2 destination = ClampToWalls(ResolveTeleportDestination(
+            JAMInput.CursorWorldPosition(mainCamera, transform.position)));
 
         GameObject marker = null;
         if (teleportMarkerPrefab != null)
@@ -142,14 +148,9 @@ public class JAMSkill : MonoBehaviour
 
         if (marker != null) Destroy(marker);
 
-        if (IsPositionClear(destination))
-        {
-            MoveTo(destination);
-        }
-        else
-        {
-            Debug.Log("[JAMSkill] Teleport blocked -- destination is occupied.", this);
-        }
+        // ClampToWalls already guaranteed the destination is reachable, and the
+        // player was rooted through the wind-up, so nothing has invalidated it.
+        MoveTo(destination);
 
         nextTeleportTime = Time.time + teleportCooldown;
         isTeleporting = false;
@@ -165,6 +166,53 @@ public class JAMSkill : MonoBehaviour
             offset = offset.normalized * teleportMaxRange;
         }
         return origin + offset;
+    }
+
+    /// <summary>
+    /// Sweeps a player-sized circle along the jump and pulls the destination back to
+    /// the first solid thing in the way, so a blink cannot pass through the boundary
+    /// wall and land outside the level.
+    ///
+    /// Checking only the destination is not enough: the ground beyond a wall is
+    /// empty, so an end-point test happily approves landing out there. The path is
+    /// what has to be clear.
+    ///
+    /// Triggers are excluded, which is what separates walls from pickups without
+    /// needing a dedicated layer -- every wall collider is solid and every
+    /// collectible is a trigger. Set teleportBlockMask once an Obstacle layer exists
+    /// and the sweep narrows to it.
+    /// </summary>
+    private Vector2 ClampToWalls(Vector2 destination)
+    {
+        if (!stopAtWalls) return destination;
+
+        Vector2 origin = body.position;
+        Vector2 delta = destination - origin;
+        float distance = delta.magnitude;
+        if (distance < 0.0001f) return destination;
+
+        Vector2 direction = delta / distance;
+
+        ContactFilter2D filter = new ContactFilter2D { useTriggers = false };
+        if (teleportBlockMask.value != 0) filter.SetLayerMask(teleportBlockMask);
+
+        // Slightly under the player's radius: standing flush against a wall would
+        // otherwise start the sweep already overlapping it, and every jump -- even
+        // one straight away from the wall -- would report a blocked path.
+        float castRadius = teleportClearRadius * 0.9f;
+        int count = Physics2D.CircleCast(origin, castRadius, direction, filter, teleportHits, distance);
+
+        float nearest = distance;
+        for (int i = 0; i < count; i++)
+        {
+            RaycastHit2D hit = teleportHits[i];
+            if (hit.collider == null) continue;
+            if (hit.collider.transform.IsChildOf(transform)) continue; // the player's own body
+            if (hit.distance <= 0f) continue;                          // already overlapping at the start
+            if (hit.distance < nearest) nearest = hit.distance;
+        }
+
+        return nearest >= distance ? destination : origin + direction * nearest;
     }
 
     // ---------------------------------------------------------- 2: time freeze
