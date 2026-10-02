@@ -19,6 +19,31 @@ public class JAMSkillCheese : MonoBehaviour
     [Tooltip("Optional VFX spawned where it was picked up.")]
     public GameObject onCollectEffect;
 
+    /// <summary>
+    /// How much skill cheese is still lying on the map. Kept as a running total by
+    /// the pickups themselves so JAMCheeseCounter never has to sweep the scene.
+    /// </summary>
+    public static int Remaining { get; private set; }
+
+    private void OnEnable()
+    {
+        Remaining += Mathf.Max(value, 0);
+    }
+
+    private void OnDisable()
+    {
+        // Also runs on Destroy, which is how a collected wheel leaves the tally.
+        Remaining -= Mathf.Max(value, 0);
+    }
+
+    // Statics survive a scene reload when Enter Play Mode Options turns the domain
+    // reload off, which would otherwise make the count climb every time you hit Play.
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetState()
+    {
+        Remaining = 0;
+    }
+
     private void Update()
     {
         // Spun by hand, so JAMTimeFreeze cannot stop it from the outside.

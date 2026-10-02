@@ -14541,6 +14541,26 @@ PrefabInstance:
       propertyPath: m_VerticalAlignment
       value: 512
       objectReference: {fileID: 0}
+    - target: {fileID: 6656765157335027882, guid: c7ced119b3e494397a40ccefd36cf0e3,
+        type: 3}
+      propertyPath: m_UiScaleMode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6656765157335027882, guid: c7ced119b3e494397a40ccefd36cf0e3,
+        type: 3}
+      propertyPath: m_MatchWidthOrHeight
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6656765157335027882, guid: c7ced119b3e494397a40ccefd36cf0e3,
+        type: 3}
+      propertyPath: m_ReferenceResolution.x
+      value: 1920
+      objectReference: {fileID: 0}
+    - target: {fileID: 6656765157335027882, guid: c7ced119b3e494397a40ccefd36cf0e3,
+        type: 3}
+      propertyPath: m_ReferenceResolution.y
+      value: 1080
+      objectReference: {fileID: 0}
     - target: {fileID: 6770172213873927252, guid: c7ced119b3e494397a40ccefd36cf0e3,
         type: 3}
       propertyPath: m_Name

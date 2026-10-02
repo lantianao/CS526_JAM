@@ -85,10 +85,15 @@ public class JAMSkillProgression : MonoBehaviour
         }
     }
 
+    // Retired: the in-scene skill UI replaced this placeholder. The scene still has
+    // Show Overlay ticked, so the switch has to live here to actually silence it --
+    // flip it back to true to get the debug readout during testing.
+    private const bool OverlayEnabled = false;
+
     // Placeholder readout so the mechanic is testable before any real UI exists.
     private void OnGUI()
     {
-        if (!showOverlay) return;
+        if (!OverlayEnabled || !showOverlay) return;
 
         GUILayout.BeginArea(new Rect(12f, 12f, 260f, 132f), GUI.skin.box);
 
