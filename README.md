@@ -7,6 +7,8 @@ Immersive-sim powers — possession, teleportation, time-freeze — dropped into
 top-down shooter, with the genre's usual stealth incentive inverted: the powers
 reward pushing a fight, not avoiding one.
 
+**▶ Play it in the browser: https://lantianao.github.io/CS526_JAM/**
+
 ## Requirements
 
 - **Unity 6000.3.22f1** (the exact version is pinned in `ProjectSettings/ProjectVersion.txt`)
@@ -17,10 +19,13 @@ reward pushing a fight, not avoiding one.
 
 ## Running it
 
-Clone, open in Unity, and load `Assets/JAM/Scenes/JAM.unity`.
+Clone, open in Unity, and load `Assets/JAM/Scenes/TEST.unity` — that is the
+shipping scene, and the only one in the build list.
 
-> The scene is not in the build list yet, so a player build will not contain it.
-> Add it under `File → Build Profiles` before producing a build.
+> **Building for the web:** use the `escape from sofas` build profile. Its
+> Compression Format must stay **Disabled**. GitHub Pages serves static files
+> with no `Content-Encoding` header, so a Brotli or Gzip build fails to load
+> there with `Unable to parse Build/....framework.js.br`.
 
 ## Controls
 
@@ -96,13 +101,11 @@ Two files inside `Assets/_Unity Essentials/` were changed and are **not** stock:
 
 ## Team contributions
 
-<!-- The rubric grades this section. Each of us fills in our own row. -->
-
 | Member | Contribution |
 | --- | --- |
-| _(name)_ | _(what you built — code, design, art, level)_ |
-| _(name)_ | _(what you built)_ |
+| Tianqing Lan | Player controller, the three abilities (`JAMSkill`), input layer, weapon and bullet, time-freeze system, skill-cheese economy and unlocks, dead-zone camera, enemy AI behaviour, repository structure and WebGL deployment |
+| Diana Wan | Full playable level, enemy prefab and patrol routing, goal trigger and win panel, and the HUD: pause menu, kill counter, run timer, ability readout, player and enemy health bars |
 
 ## Design document
 
-`docs/CSCI526 Paired Prototype Descriptive Document.docx`
+[`docs/Descriptive document.md`](docs/Descriptive%20document.md)
