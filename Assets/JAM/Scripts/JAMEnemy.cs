@@ -23,6 +23,9 @@ public class JAMEnemy : MonoBehaviour
     [Tooltip("How close counts as having reached a patrol point. Velocity-driven movement overshoots, so this cannot be near-zero.")]
     public float patrolArriveDistance = 0.2f;
 
+    [Tooltip("How long a hit keeps this enemy hunting, even when the shooter is well outside Detect Range. Also how long a possession stays blown for it.")]
+    public float alertDuration = 6f;
+
     private Transform curTarget;
     private Rigidbody2D body;
     private JAMHealth health;
@@ -46,7 +49,15 @@ public class JAMEnemy : MonoBehaviour
     // player. Cleared at the start of each possession so every disguise is a fresh
     // one -- otherwise an enemy shot in round one would see through every later
     // possession immediately.
-    private bool alerted = false;
+    private float alertEndTime;
+
+    /// <summary>
+    /// True for a while after this enemy is hit. Being shot drags it into the fight
+    /// whatever the range, and during a possession it is also what blows the
+    /// player's cover. It expires so that one stray bullet does not leave an enemy
+    /// hunting forever.
+    /// </summary>
+    private bool Alerted => Time.time < alertEndTime;
     private bool wasPossessionActive = false;
 
 
@@ -98,7 +109,7 @@ public class JAMEnemy : MonoBehaviour
         {
             if (JAMPlayerController.PossessionActive)
             {
-                return alerted ? JAMPlayerController.ControlledTransform : null;
+                return Alerted ? JAMPlayerController.ControlledTransform : null;
             }
             return player != null ? player : JAMPlayerController.ControlledTransform;
         }
@@ -117,7 +128,7 @@ public class JAMEnemy : MonoBehaviour
     /// <summary>Any hit blows a possession's cover for this enemy.</summary>
     private void OnDamaged(JAMHealth damagedHealth, int amount)
     {
-        alerted = true;
+        alertEndTime = Time.time + alertDuration;
     }
 
     private void Patrol()
@@ -212,7 +223,7 @@ public class JAMEnemy : MonoBehaviour
         // Each new possession starts as an intact disguise, so suspicion earned
         // during an earlier one does not carry over.
         bool possessionActive = JAMPlayerController.PossessionActive;
-        if (possessionActive && !wasPossessionActive) alerted = false;
+        if (possessionActive && !wasPossessionActive) alertEndTime = 0f;
         wasPossessionActive = possessionActive;
 
         switch (currentMode)
@@ -276,8 +287,12 @@ public class JAMEnemy : MonoBehaviour
 
         if (distanceToHome > chaseRange)
         {
+            // Giving up the chase means losing interest too. Without this an
+            // alerted enemy would bounce forever: leash home, re-engage, leash
+            // home again, for as long as the alert lasts.
             ReturnHome();
             returning = true;
+            alertEndTime = 0f;
             return;
         }
 
@@ -289,17 +304,21 @@ public class JAMEnemy : MonoBehaviour
             return;
         }
 
-        // if player in range of detection, start chasing and attack
+        // Spotting the player is the usual way into a fight, but being shot drags
+        // the enemy in regardless of range -- otherwise a sniper well outside
+        // Detect Range could whittle it down while it patrolled on obliviously.
         float distanceToPlayer = Vector2.Distance(transform.position, target.position);
+        bool engaged = Alerted || distanceToPlayer <= detectRange;
+
         if (distanceToPlayer <= attackRange)
         {
             AttackPlayer();
         }
-        else if (distanceToPlayer <= detectRange)
+        else if (engaged)
         {
             ChasePlayer();
         }
-        else 
+        else
         {
             Patrol();
         }
